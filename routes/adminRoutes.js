@@ -4,14 +4,14 @@ import { toggleUserStatus, deleteUser,getTechnicians,getClients, getAllUsers,add
 
 const adminrouter = express.Router();
 
-adminrouter.post("/addUser", authenticateToken, authorizeRole(["admin"]), addUser);
-adminrouter.get("/getAllUsers", authenticateToken, authorizeRole(["admin"]), getAllUsers);
+adminrouter.post("/addUser", authenticateToken, authorizeRole(["Administrateur"]), addUser);
+adminrouter.get("/getAllUsers", authenticateToken, authorizeRole(["Administrateur"]), getAllUsers);
 // Route pour activer/désactiver un utilisateur
-adminrouter.put("/toggle-user-status/:id", authenticateToken, authorizeRole(["admin"]), toggleUserStatus);
+adminrouter.put("/toggle-user-status/:id", authenticateToken, authorizeRole(["Administrateur"]), toggleUserStatus);
 
-adminrouter.delete("/delete-user/:id", authenticateToken, authorizeRole(["admin"]), deleteUser);
-adminrouter.get("/technicians", authenticateToken, authorizeRole(["admin"]), getTechnicians);
+adminrouter.delete("/delete-user/:id", authenticateToken, authorizeRole(["Administrateur"]), deleteUser);
+adminrouter.get("/technicians", authenticateToken, authorizeRole(["Administrateur"]), getTechnicians);
 
 // Route pour obtenir la liste des clients
-adminrouter.get("/clients", authenticateToken, authorizeRole(["admin"]), getClients);
+adminrouter.get("/clients", authenticateToken, authorizeRole(["Administrateur"]), getClients);
 export default adminrouter;

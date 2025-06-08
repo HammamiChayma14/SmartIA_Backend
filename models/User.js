@@ -4,28 +4,19 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["admin", "Technicien", "Client"], default: "Client" },
-  active: { type: Boolean, default: true },
+  role: { type: String, enum: ["Administrateur", "Technicien", "Client"], default: "Client" },
+  statut: { type: Boolean, default: true },
   
   phone: { 
     type: String, 
-    required: function() { return this.role !== 'admin'; } 
+    required: function() { return this.role !== 'Administrateur'; } 
   },
   
   address: { 
     type: String, 
-    required: function() { return this.role !== 'admin'; } 
+    required: function() { return this.role !== 'Administrateur'; } 
   },
   
-  specialty: { 
-    type: String, 
-    required: function() { return this.role === 'Technicien'; }
-  },
-  
-  hireDate: { 
-    type: Date, 
-    required: function() { return this.role === 'Technicien'; } 
-  },
   
   resetPasswordToken: { type: String }, 
   resetPasswordExpires: { type: Date }

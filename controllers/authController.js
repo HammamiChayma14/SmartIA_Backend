@@ -24,32 +24,25 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log("Tentative de connexion avec l'email :", email);
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      console.log(`Utilisateur non trouvé pour l'email : ${email}`);
       return res.status(401).json({ message: "Email incorrect" });
     }
 
-    console.log(`Utilisateur trouvé : ${user.name}`);
 
-    if (!user.active) {
+    if (!user.statut) {
       console.log(`Compte désactivé pour l'email : ${email}`);
       return res.status(403).json({ message: "Compte désactivé. Contactez l'admin." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log(`Mot de passe comparé pour ${email}: ${isMatch}`);
-
     if (!isMatch) {
-      console.log(`Mot de passe incorrect pour l'email : ${email}`);
-      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+      return res.status(401).json({ message: "Mot de passe incorrect" });
     }
 
     if (user.role === "Client" || user.role === "Technicien") {
-      console.log(`Utilisateur de rôle ${user.role} détecté. Envoi de l'OTP.`);
 
       // Générer un OTP de 4 chiffres
       const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -63,16 +56,15 @@ export const login = async (req, res) => {
         text: `Votre code OTP est : ${otp}. Il est valide pendant 5 minutes.`,
       });
 
-      console.log(`OTP envoyé à ${user.email}: ${otp}`);
       return res.json({ message: "Code OTP envoyé à votre email", requiresOTP: true, email: user.email });
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "2h" });
 
-    console.log(`Token généré pour l'utilisateur ${user.email}`);
-    res.json({ token, role: user.role });
+    res.json({message: "Authentification réussie", token, role: user.role });
   } catch (error) {
-    console.error("Erreur lors de la tentative de connexion :", error);
+
+  
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
@@ -95,16 +87,16 @@ export const verifyOTP = async (req, res) => {
       return res.status(402).json({ message: "Code OTP expiré" });
     }
 
-    otpStore.delete(email); // On supprime l'OTP après vérification réussie.
+    otpStore.delete(email); 
 
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Utilisateur non trouvé" });
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "2h" });
 
-    res.json({ message: "Login successful", token, role: user.role });
+    res.json({ message: "Authentification réussie", token, role: user.role });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Erreur serveur" });
@@ -130,7 +122,6 @@ export const resendOTP = async (req, res) => {
 
     otpStore.set(email, { otp, expiresAt });
 
-    console.log(`📨 OTP renvoyé à ${email} : ${otp}`);
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -165,10 +156,10 @@ export const forgotPassword = async (req, res) => {
 
   // Configuration de Nodemailer pour envoyer l'email
   const transporter = nodemailer.createTransport({
-    service: 'gmail',  // Tu peux utiliser un autre service SMTP ici
+    service: 'gmail',  
     auth: {
-      user: process.env.EMAIL_USER,  // Adresse email pour l'envoi
-      pass: process.env.EMAIL_PASS   // Mot de passe de l'email
+      user: process.env.EMAIL_USER,  
+      pass: process.env.EMAIL_PASS   
     }
   });
 
@@ -178,7 +169,7 @@ export const forgotPassword = async (req, res) => {
   // Options de l'email
   const mailOptions = {
     to: email,
-    from: process.env.EMAIL_USER,  // L'email de l'expéditeur
+    from: process.env.EMAIL_USER, 
     subject: 'Réinitialisation de mot de passe',
     text: `Cliquez sur ce lien pour réinitialiser votre mot de passe : ${resetLink}`
   };
@@ -232,22 +223,25 @@ export const getMyProfile = async (req, res) => {
   }
 };
 
-// 🔹 Modifier son propre compte
+//  Modifier  compte
 export const updateMyProfile = async (req, res) => {
   try {
-      const { name, email, password } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
-      let user = await User.findById(req.user.id);
-      if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+    let user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
 
-      // Mettre à jour les champs renseignés
-      if (name) user.name = name;
-      if (email) user.email = email;
-      if (password) user.password = await bcrypt.hash(password, 10); // Hash du mot de passe
+    // Mettre à jour les champs renseignés
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) user.password = await bcrypt.hash(password, 10);
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
 
-      await user.save();
-      res.status(200).json({ message: "Compte mis à jour avec succès", user });
+    await user.save();
+
+    res.status(200).json({ message: "Profil mis à jour avec succès", user });
   } catch (error) {
-      res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };

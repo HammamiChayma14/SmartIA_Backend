@@ -5,11 +5,12 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminrouter from "./routes/adminRoutes.js";
 import equipementRouter from "./routes/equipementRoutes.js"
-import panneRouter from "./routes/panneRouter.js"
+import articleRouter from './routes/articleRoutes.js';
 import reclamationRouter from "./routes/reclamationRouter.js"
 import interventionRouter from "./routes/interventionRouter.js"
 import User from "./models/User.js";
 import bcrypt from "bcryptjs";
+import notificationRouter from "./routes/notificationRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -17,9 +18,9 @@ connectDB();
 // Fonction pour créer un admin si nécessaire
 
 const createAdmin= async () => {
-  console.log(" Vérification de l'existence de l'admin...");
+  console.log(" Vérification de l'existence de l'admin");
 
-  const adminExists = await User.findOne({ email: "admin@tasforceit.com" });
+  const adminExists = await User.findOne({ email: "admin@taskforceit.com" });
 
   if (!adminExists) {
     console.log(" Admin non trouvé, création en cours...");
@@ -28,7 +29,7 @@ const createAdmin= async () => {
 
     const admin = new User({
       name: "Admin ",
-      email: "admin@tasforceit.com",
+      email: "admin@taskforceit.com",
       password: hashedPassword, // Stocke la version hachée
       role: "admin"
     });
@@ -52,9 +53,11 @@ app.use('/uploads', express.static('uploads'));
 app.use("/auth", authRoutes);
 app.use("/admin", adminrouter); 
 app.use("/equipements", equipementRouter); 
-app.use("/pannes", panneRouter); 
 app.use("/reclamations", reclamationRouter); 
 app.use("/interventions",interventionRouter);
+
+app.use("/articles", articleRouter);
+app.use("/notifications", notificationRouter);
 
 // Démarrage du serveur et création de l'admin si nécessaire
 const PORT = process.env.PORT || 5000;

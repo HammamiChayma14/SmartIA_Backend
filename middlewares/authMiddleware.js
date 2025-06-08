@@ -16,7 +16,7 @@ export const authenticateToken = async (req, res, next) => {
 
     // Vérifier si l'utilisateur est actif
     const user = await User.findById(req.user.id);
-    if (!user.active) {
+    if (!user.statut) {
       return res.status(403).json({ message: "Compte désactivé. Contactez l'admin." });
     }
 

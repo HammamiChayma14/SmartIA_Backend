@@ -3,24 +3,15 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 
 
-
-//fonction pour ajouter un utilisateur
+// Fonction pour ajouter un utilisateur
 export const addUser = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      role,
-      phone,
-      address,
-      hireDate,
-      specialty
-    } = req.body;
+    const { name, email, role, phone, address } = req.body;
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Cet utilisateur existe déjà." });
+      return res.status(400).json({ message: "Cet utilisateur existe déjà" });
     }
 
     // Générer un mot de passe temporaire
@@ -33,16 +24,10 @@ export const addUser = async (req, res) => {
       email,
       role,
       password: hashedPassword,
-      active: true,
+      statut: true,
       phone,
-      address
+      address,
     };
-
-    // Ajouter les champs spécifiques au technicien
-    if (role === "Technicien") {
-      newUserData.hireDate = hireDate;
-      newUserData.specialty = specialty;
-    }
 
     const newUser = new User(newUserData);
     await newUser.save();
@@ -52,34 +37,21 @@ export const addUser = async (req, res) => {
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
+        pass: process.env.EMAIL_PASS,
+      },
     });
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Votre compte a été créé",
-      text: `Bonjour ${name},
-
-Votre compte a été créé avec succès.
-
-Rôle : ${role}
-Identifiant : ${email}
-Mot de passe temporaire : ${password}
-
-Veuillez vous connecter et modifier votre mot de passe dès que possible.
-
-Cordialement,
-L'équipe Taskforce IT`
+      text: `Bonjour ${name},\n\nVotre compte a été créé avec succès.\n\nRôle : ${role}\nEmail : ${email}\nMot de passe temporaire : ${password}\n\nCordialement,\nL'équipe Taskforce IT`,
     };
 
     await transporter.sendMail(mailOptions);
 
-    res.status(201).json({ message: "Utilisateur ajouté et email envoyé." });
-
+    res.status(201).json({ message: "Utilisateur ajouté avec succès et email envoyé." });
   } catch (error) {
-    console.error("Erreur lors de l'ajout de l'utilisateur :", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
@@ -113,7 +85,9 @@ export const deleteUser = async (req, res) => {
 // liste des techniciens
 export const getTechnicians = async (req, res) => {
     try {
-      const technicians = await User.find({ role: 'Technicien' }); // Chercher tous les utilisateurs avec le rôle "technician"
+      const technicians = await User.find({ role: 'Technicien' });
+            console.log("Technicians found:", technicians.length); // <-- Vérifiez le nombre
+
       res.status(200).json(technicians);
     } catch (error) {
       res.status(500).json({ message: 'Erreur serveur lors de la récupération des techniciens.' });
@@ -123,7 +97,7 @@ export const getTechnicians = async (req, res) => {
 // liste des clients 
 export const getClients = async (req, res) => {
     try {
-      const clients = await User.find({ role: 'Client' }); // Chercher tous les utilisateurs avec le rôle "client"
+      const clients = await User.find({ role: 'Client' }); 
       res.status(200).json(clients);
     } catch (error) {
       res.status(500).json({ message: 'Erreur serveur lors de la récupération des clients.' });
@@ -132,9 +106,8 @@ export const getClients = async (req, res) => {
 
   export const getAllUsers = async (req, res) => {
     try {
-      console.log("Admin connecté :", req.user); // Vérifier si l'admin est bien authentifié
   
-      if (!req.user || req.user.role !== "admin") {
+      if (!req.user || req.user.role !== "Administrateur") {
         return res.status(403).json({ message: "Accès interdit" });
       }
   
@@ -145,16 +118,18 @@ export const getClients = async (req, res) => {
     }
   };
 
+  
 // 🔹 Activer / désactiver un compte utilisateur
+//deszactiver est pour le technicien
 export const toggleUserStatus = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
 
-        user.active = !user.active;
+        user.statut = !user.statut;
         await user.save();
 
-        res.json({ message: `Utilisateur ${user.active ? "activé" : "désactivé"} avec succès !` });
+        res.json({ message: `Utilisateur ${user.statut ? "activé" : "désactivé"} avec succès !` });
     } catch (error) {
         res.status(500).json({ message: "Erreur serveur" });
     }

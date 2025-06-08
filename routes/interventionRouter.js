@@ -1,26 +1,14 @@
 import express from "express";
 import { 
-  creerIntervention, 
-  mettreAJourIntervention, 
-  obtenirInterventions, 
-  supprimerIntervention 
+  commencerIntervention,terminerIntervention,getAllInterventions
 } from "../controllers/interventionController.js";
 import { authenticateToken, authorizeRole } from "../middlewares/authMiddleware.js";
 
 const interventionRouter = express.Router();
 
-// 📌 Création d'une intervention (Admin ou Technicien)
-interventionRouter.post("/creerIntervention",authenticateToken,authorizeRole(["technicien"]),
-  creerIntervention
-);
+interventionRouter.post('/commencer', authenticateToken,authorizeRole(['Administrateur']), commencerIntervention);
+interventionRouter.post('/terminer', authenticateToken,authorizeRole(['Administrateur']),terminerIntervention);
 
-// 📌 Mise à jour d'une intervention (Technicien)
-interventionRouter.put("/mettreAJourIntervention/:id",authenticateToken,authorizeRole(["technicien"]),mettreAJourIntervention);
-
-// 📌 Récupérer toutes les interventions (Admin & Technicien)
-interventionRouter.get("/obtenirInterventions",authenticateToken,authorizeRole(["admin", "technicien"]),obtenirInterventions);
-
-// 📌 Supprimer une intervention (Admin)
-interventionRouter.delete("/supprimerIntervention/:id",authenticateToken,authorizeRole(["admin"]),supprimerIntervention);
+interventionRouter.get('/getAllInterventions',authenticateToken,authorizeRole(['TAdministrateur']),getAllInterventions);
 
 export default interventionRouter;

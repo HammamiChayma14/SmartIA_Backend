@@ -1,16 +1,16 @@
 import express from "express";
-import { validerReclamationAvantIntervention, supprimerReclamation,creerReclamation,validerReclamationAprésIntervention ,modifierReclamation,getAllReclamations} from "../controllers/reclamationController.js";
+import {  supprimerReclamation,creerReclamation ,modifierReclamation,getAllReclamations,modifierStatutReclamation, assignerReclamationTechnicien,afficherDiagnosticPdf} from "../controllers/reclamationController.js";
 import { authenticateToken, authorizeRole } from "../middlewares/authMiddleware.js";
+import upload from "../middlewares/uploadMiddleware.js"; 
 
 const reclamationRouter = express.Router();
 
-// 📌 Valider une réclamation (Admin uniquement)
-reclamationRouter.put('/validerReclamationAvantIntervention/:id', authenticateToken, authorizeRole(['admin']), validerReclamationAvantIntervention);
-reclamationRouter.put('/validerReclamationInterventionaa/:id', authenticateToken, authorizeRole(['admin', 'Client']), validerReclamationAprésIntervention
-  );// 📌 Supprimer une réclamation (Admin uniquement)
-reclamationRouter.delete('/supprimerReclamation/:id', authenticateToken, authorizeRole(['admin']), supprimerReclamation);
-reclamationRouter.post( "/creerReclamation",authenticateToken, authorizeRole(["Client"]),creerReclamation );
+
+reclamationRouter.delete('/supprimerReclamation/:id', authenticateToken, authorizeRole(['Administrateur','Client']), supprimerReclamation);
+reclamationRouter.get('/getAllReclamations', authenticateToken, authorizeRole(['Administrateur', 'Technicien', 'Client']), getAllReclamations);
+reclamationRouter.post("/creerReclamation", authenticateToken, authorizeRole(["Client"]), upload.single('diagnosticPdf'), creerReclamation);
+reclamationRouter.put( '/modifierReclamation/:id',authenticateToken, authorizeRole(['Client']),upload.single('diagnosticPdf'), modifierReclamation);
+reclamationRouter.put('/modifierStatutReclamation/:id', authenticateToken,authorizeRole(["Administrateur"]),modifierStatutReclamation);
+reclamationRouter.put('/assignerReclamation/:id', authenticateToken, authorizeRole(['Administrateur']), assignerReclamationTechnicien); 
+reclamationRouter.get('/afficherDiagnosticPdf/:id', authenticateToken, authorizeRole(['Administrateur', 'Technicien','Client']), afficherDiagnosticPdf);
 export default reclamationRouter;
-// 📌 Modifier une réclamation (Client uniquement, le client peut modifier sa propre réclamation)
-reclamationRouter.put('/modifierReclamation/:id', authenticateToken, authorizeRole(['Client']), modifierReclamation);
-reclamationRouter.get('/getAllReclamations', authenticateToken, authorizeRole(['admin', 'Technicien', 'Client']), getAllReclamations);

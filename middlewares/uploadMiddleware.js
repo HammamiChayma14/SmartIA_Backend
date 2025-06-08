@@ -1,25 +1,19 @@
-import multer from 'multer';
-import path from 'path';
+import multer from "multer";
 
-// Définir le stockage des fichiers
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Stocke les fichiers dans le dossier "uploads"
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Renomme le fichier avec un timestamp
-  }
-});
+const storage = multer.memoryStorage(); // PAS de disque
 
-// Filtrer les fichiers pour accepter uniquement les images
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
+  if (file.mimetype === "application/pdf") {
     cb(null, true);
   } else {
-    cb(new Error('Seules les images sont autorisées.'), false);
+    cb(new Error("Seuls les fichiers PDF sont autorisés."), false);
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 Mo
+});
 
 export default upload;

@@ -1,64 +1,8 @@
 import Equipement from '../models/Equipement.js';
 import QRCode from 'qrcode';
 
-// Ajouter un équipement
-export const addEquipement = async (req, res) => {
-  try {
-    const { designation, marque, modele, numeroSerie, statut, localisation } = req.body;
 
-    const newEquipement = new Equipement({
-      designation,
-      marque,
-      modele,
-      numeroSerie,
-      statut: statut || 'en service', // Valeur par défaut : 'en service'
-      localisation,
-    });
 
-    await newEquipement.save();
-    res.status(201).json({ message: "Equipement ajouté avec succès!", equipement: newEquipement });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur lors de l'ajout de l'équipement." });
-  }
-};
-
-/* Mettre à jour un équipement
-export const updateEquipement = async (req, res) => {
-    try {
-      // Trouver l'équipement par ID
-      const equipement = await Equipement.findById(req.params.id);
-  
-      // Vérifier si l'équipement existe
-      if (!equipement) {
-        return res.status(404).json({ message: "Équipement non trouvé." });
-      }
-  
-      // Extraire les champs envoyés dans la requête
-      const { designation, statut, localisation, marque, modele, numeroSerie } = req.body;
-  
-      // Mettre à jour uniquement les champs fournis dans la requête
-      if (designation) equipement.designation = designation;
-      if (marque) equipement.marque = marque;
-      if (modele) equipement.modele = modele;
-      if (numeroSerie) equipement.numeroSerie = numeroSerie;
-      if (statut) equipement.statut = statut; // Si le statut est fourni, le mettre à jour
-      if (localisation) equipement.localisation = localisation;
-  
-      // Sauvegarder les modifications dans la base de données
-      await equipement.save();
-  
-      // Répondre avec succès
-      res.status(200).json({
-        message: "Équipement mis à jour.",
-        equipement
-      });
-  
-    } catch (error) {
-      // Log de l'erreur pour aider au débogage
-      console.error("Erreur serveur : ", error);
-      res.status(500).json({ message: "Erreur serveur lors de la mise à jour de l'équipement.", error: error.message });
-    }
-  };*/
   //Récupérer un équipement par ID
 export const getEquipementById = async (req, res) => {
   try {
@@ -92,23 +36,15 @@ export const updateEquipement = async (req, res) => {
     const { designation, statut, localisation, marque, modele, numeroSerie } = req.body;
     const userRole = req.user.role; // Récupération du rôle de l'utilisateur connecté
 
-    if (userRole === 'admin') {
-      // L'admin peut tout modifier
+    if (userRole === 'Administrateur') {
       if (designation) equipement.designation = designation;
       if (marque) equipement.marque = marque;
       if (modele) equipement.modele = modele;
       if (numeroSerie) equipement.numeroSerie = numeroSerie;
       if (statut) equipement.statut = statut;
       if (localisation) equipement.localisation = localisation;
-    } else if (userRole === 'Technicien') {
-      // Le technicien ne peut modifier que le statut
-      if (statut) {
-        equipement.statut = statut;
-      } else {
-        return res.status(403).json({ message: "Accès refusé : vous ne pouvez modifier que le statut." });
-      }
     } else {
-      return res.status(403).json({ message: "Accès refusé." });
+      return res.status(403).json({ message: "Accès refusé : seuls les administrateurs peuvent modifier un équipement." });
     }
 
     await equipement.save();
@@ -169,7 +105,7 @@ export const deleteEquipement = async (req, res) => {
       const qrCodeImage = await QRCode.toDataURL(qrCodeData);
   
       res.status(201).json({ 
-        message: "Équipement ajouté avec succès!", 
+        message: "Équipement ajouté avec succès", 
         equipement: newEquipement, 
         qrCodeImage 
       });
